@@ -8,18 +8,29 @@ const rl = readline.createInterface({
 
 
 const handleConnection = socket => {
-    console.log('A new challenger has arrived...');
+    console.log('\x1b[33mcontrol message: a new challenger has arrived...\x1b[0m\n\n');
 
     socket.on('end', () => {
-        console.log('Goodbye', socket);
+        console.log('\n\n\x1b[33mcontrol message: Client has left...\x1b[0m');
     });
 
     rl.addListener('line', line => {
-        socket.emit(line);
+        socket.write(line);
+
+        readline.moveCursor(process.stdout, 0, -1);
+        readline.clearScreenDown(process.stdout);
+
+        console.log(`\x1b[34mMe: ${line.toString()}\x1b[0m`);
     });
 
     socket.on('data', data => {
-        console.log(data.toString());
+        const message = data.toString();
+        
+        console.log(`\x1b[32mClient: ${message}\x1b[0m`);
+
+        if (message.toLowerCase() === "bye") {
+            socket.end();
+        }
     });
 }
 
