@@ -1,7 +1,5 @@
 const net = require('net');
 
-const clients = [];
-
 const calculator = {
     '+': (x, y) => x + y,
     '-': (x, y) => x - y,
@@ -26,6 +24,24 @@ const validate = (req) => {
 const handleConnection = socket => {
     socket.on('data', data => {
         const jsonData = JSON.parse(data.toString());
+
+        if (jsonData.end) {
+            socket.destroy({});
+        } else {
+            let response = "";
+    
+            if (!validate(jsonData)) {
+                response = "Invalid request (missing parameters)";
+            } else {
+                response = (calculator[jsonData.op](jsonData.x, jsonData.y)).toString();
+            }
+    
+            socket.write(response);
+        }
+    });
+
+    socket.on("error", err => {
+        console.log(err);
     });
 }
 
