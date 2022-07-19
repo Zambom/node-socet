@@ -13,12 +13,32 @@ const calculator = {
     '*': (x, y) => x * y,
 }
 
-const validate = (req) => {
+const validate = req => {
     if (req.op == null || req.x == null || req.y == null) {
         return false;
     }
     
     return true;
+}
+
+const serialize = msg => {
+    const buffer = Buffer.alloc(1);
+
+    buffer.write(msg);
+
+    return buffer;
+}
+
+const deserialize = data => {
+    const buffer = Buffer.from(data);
+    
+    const req = {
+        op: buffer.toString('utf8', 0, 1),
+        x: buffer.readInt8(1),
+        y: buffer.readInt8(2)
+    };
+
+    return req;
 }
 
 const socket = dgram.createSocket('udp4');
@@ -29,9 +49,8 @@ socket.on('error', error => {
 });
 
 socket.on('message', (msg, rinfo) => {
-    console.log(`Request: ${msg} - From ${rinfo.address}:${rinfo.port}\n`);
+    const req = deserialize(msg);
 
-    const req = JSON.parse(msg);
     let response = "";
 
     if (!validate(req)) {
@@ -40,7 +59,7 @@ socket.on('message', (msg, rinfo) => {
         response = (calculator[req.op](req.x, req.y)).toString();
     }
 
-    socket.send(response, rinfo.port, rinfo.address);
+    socket.send(serialize(response), rinfo.port, rinfo.address);
 });
 
 socket.bind(8081);
