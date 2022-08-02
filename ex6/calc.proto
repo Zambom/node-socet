@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package calcPackage;
+
+service Calc {
+    rpc calculate(Args) returns(Response);
+}
+
+message Args {
+    string op = 1;
+    int32 term1 = 2;
+    int32 term2 = 3;
+}
+
+message Response {
+    int32 result = 1;
+}

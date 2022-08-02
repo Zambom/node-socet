@@ -1,0 +1,11 @@
+{
+    "name": "grpc-calculator",
+    "version": "1.0.0",
+    "description": "A calculator service implementation to train grpc use",
+    "author": "Erik Zambom",
+    "license": "MIT",
+    "dependencies": {
+        "grpc": "^1.2.0",
+        "@grpc/proto-loader": "^0.7.0"
+    }
+}
