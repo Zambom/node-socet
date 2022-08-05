@@ -1,47 +1,52 @@
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
-const readline = require('readline');
 
 const packageDef = protoLoader.loadSync('chat.proto', {});
 const grpcObj = grpc.loadPackageDefinition(packageDef);
 const chatPackage = grpcObj.chatPackage;
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+const clients = [];
 
-const send = (call) => {
-    call.on('data', (data) => {
-        const message = data.msg;
-        
-        console.log(`\x1b[32mClient: ${message}\x1b[0m`);
-
-        if (message.toLowerCase() === "bye") {
-            rl.close();
-            call.end();
+const broadcastMessage = (id, message) => {
+    clients.forEach(el => {
+        if (el.id !== id) {
+            el.call.write(message);
         }
     });
+}
 
-    rl.addListener('line', line => {
-        call.write({ msg: line });
+const join = (call) => {
+    const { id, name } = call.request;
+    const qtd = clients.length;
+    
+    clients.push({ id, call, name});
 
-        readline.moveCursor(process.stdout, 0, -1);
-        readline.clearScreenDown(process.stdout);
+    broadcastMessage(id, { id, type: 0, msg: `${name} has joined the channel` });
 
-        console.log(`\x1b[34mMe: ${line.toString()}\x1b[0m`);
+    call.write({ id, type: 2, msg: qtd });
+}
 
-        if (line.toString().toLowerCase() === 'bye') {
-            rl.close();
-            call.end();
-        }
-    });
+const send = (call, callback) => {
+    const { id, msg } = call.request;
+    
+    const me = clients.find(el => el.id === id);
+    
+    broadcastMessage(id, { id, type: 1, msg: `${me.name}: ${msg}` });
+
+    if (msg.toLowerCase() === "bye") {
+        broadcastMessage(id, { id, type: 0, msg: `${me.name} has left the channel` });
+
+        me.call.end();
+
+        clients.splice(clients.indexOf(me), 1);
+    }
 }
 
 const server = new grpc.Server();
 server.bind("0.0.0.0:3000", grpc.ServerCredentials.createInsecure());
 
 server.addService(chatPackage.Chat.service, {
+    'join': join,
     'send': send
 });
 
