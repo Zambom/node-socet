@@ -1,0 +1,29 @@
+[
+    {
+        "band": "Imagine Dragons",
+        "nationality": "American",
+        "albuns": [
+            {
+                "title": "Mercury Act 1 & 2",
+                "year": 2022,
+                "total_songs": 32
+            },
+            {
+                "title": "Evolve",
+                "year": 2017,
+                "total_songs": 17
+            }
+        ]
+    },
+    {
+        "band": "Avantasia",
+        "nationality": "German",
+        "albuns": [
+            {
+                "title": "Angel of Babylon",
+                "year": 2010,
+                "total_songs": 11
+            }
+        ]
+    }
+]
